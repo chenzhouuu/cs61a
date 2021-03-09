@@ -22,6 +22,14 @@ def roll_dice(num_rolls, dice=six_sided):
     assert num_rolls > 0, 'Must roll at least once.'
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
+    dice_list = []
+    for _ in range(num_rolls):
+        dice_number = dice()
+        if dice_number == 1:
+            return 1
+        else:
+            dice_list.append(dice_number)
+    return sum(dice_list)
     # END PROBLEM 1
 
 
@@ -33,6 +41,16 @@ def free_bacon(score):
     assert score < 100, 'The game should be over.'
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
+    cube = score ** 3
+    count = 0
+    bacon = 0
+    while cube > 0:
+        bacon += cube % 10 * (-1) ** count
+        cube //= 10
+        count += 1
+    return abs(bacon) + 1
+        
+
     # END PROBLEM 2
 
 
@@ -51,6 +69,10 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert opponent_score < 100, 'The game should be over.'
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
+    if num_rolls == 0:
+        return free_bacon(opponent_score)
+    else:
+        return roll_dice(num_rolls, dice)
     # END PROBLEM 3
 
 
@@ -60,6 +82,13 @@ def is_swap(player_score, opponent_score):
     """
     # BEGIN PROBLEM 4
     "*** YOUR CODE HERE ***"
+    power = 3 ** (player_score + opponent_score)
+    last_digit = power % 10
+    while power >= 10:
+        power //= 10
+    first_digit = power
+    return last_digit == first_digit
+        
     # END PROBLEM 4
 
 
@@ -100,6 +129,35 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     who = 0  # Who is about to take a turn, 0 (first) or 1 (second)
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    score0_list = [0]
+    score1_list = [0]
+    count0 = 0
+    count1 = 0
+    while score0 < goal and score1 < goal:
+        say = say(score0, score1)
+        if who == 0:
+            num_rolls0 = strategy0(score0, score1)
+            current_score0 = take_turn(num_rolls0, score1, dice)
+            if feral_hogs and abs(score0_list[count0] - num_rolls0) == 2:
+                score0 += current_score0 + 3
+            else:
+                score0 += current_score0
+            score0_list.append(current_score0)
+            count0 += 1
+            who = other(who)
+        else:
+            num_rolls1 = strategy1(score1, score0)
+            current_score1 = take_turn(num_rolls1, score0, dice)
+            if feral_hogs and abs(score1_list[count1] - num_rolls1) == 2:
+                score1 += current_score1 + 3
+            else:
+                score1 += current_score1
+            score1_list.append(current_score1)
+            count1 += 1
+            who = other(who)
+    say = say(score0, score1)
+    if is_swap(score0, score1):
+        score0, score1 = score1, score0
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
@@ -190,6 +248,23 @@ def announce_highest(who, prev_high=0, prev_score=0):
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    def say(score0, score1, prev_high=prev_high, prev_score=prev_score):
+        if who == 0:
+            score_diff = score0 - prev_score
+            if score_diff > prev_high:
+                print(f"{score_diff} point(s)! That's the biggest gain yet for Player {who}")
+                prev_high = score_diff
+            return announce_highest(who, prev_high, score0)
+        if who == 1:
+            score_diff = score1 - prev_score
+            if score_diff > prev_high:
+                print(f"{score_diff} point(s)! That's the biggest gain yet for Player {who}")
+                prev_high = score_diff
+            return announce_highest(who, prev_high, score1) 
+    return say
+        
+
+
     # END PROBLEM 7
 
 
